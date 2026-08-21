@@ -1,0 +1,129 @@
+{
+  "$defs": {
+    "AIProvenance": {
+      "properties": {
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "harness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Harness"
+        },
+        "reasoning_mode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reasoning Mode"
+        }
+      },
+      "title": "AIProvenance",
+      "type": "object"
+    },
+    "Origin": {
+      "enum": [
+        "human",
+        "ai",
+        "hybrid"
+      ],
+      "title": "Origin",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "id": {
+      "pattern": "^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "kind": {
+      "const": "hypothesis",
+      "default": "hypothesis",
+      "title": "Kind",
+      "type": "string"
+    },
+    "target": {
+      "title": "Target",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "origin": {
+      "$ref": "#/$defs/Origin"
+    },
+    "status": {
+      "const": "hypothesis",
+      "default": "hypothesis",
+      "title": "Status",
+      "type": "string"
+    },
+    "security_boundary": {
+      "title": "Security Boundary",
+      "type": "string"
+    },
+    "confidence": {
+      "anyOf": [
+        {
+          "maximum": 1,
+          "minimum": 0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Confidence"
+    },
+    "ai": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AIProvenance"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "target",
+    "title",
+    "origin",
+    "security_boundary"
+  ],
+  "title": "Hypothesis",
+  "type": "object"
+}

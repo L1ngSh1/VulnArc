@@ -1,0 +1,49 @@
+{
+  "properties": {
+    "id": {
+      "pattern": "^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "kind": {
+      "const": "pattern",
+      "default": "pattern",
+      "title": "Kind",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "category": {
+      "title": "Category",
+      "type": "string"
+    },
+    "cases": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Cases",
+      "type": "array"
+    },
+    "description": {
+      "title": "Description",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "title",
+    "category",
+    "description"
+  ],
+  "title": "Pattern",
+  "type": "object"
+}

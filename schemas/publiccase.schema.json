@@ -1,0 +1,75 @@
+{
+  "properties": {
+    "id": {
+      "pattern": "^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "kind": {
+      "const": "public_case",
+      "default": "public_case",
+      "title": "Kind",
+      "type": "string"
+    },
+    "target": {
+      "title": "Target",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "disclosed",
+        "public"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "disclosure_date": {
+      "format": "date-time",
+      "title": "Disclosure Date",
+      "type": "string"
+    },
+    "cve": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Cve"
+    },
+    "ghsa": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ghsa"
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "target",
+    "title",
+    "status",
+    "disclosure_date"
+  ],
+  "title": "PublicCase",
+  "type": "object"
+}

@@ -1,0 +1,132 @@
+{
+  "$defs": {
+    "AIProvenance": {
+      "properties": {
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "harness": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Harness"
+        },
+        "reasoning_mode": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reasoning Mode"
+        }
+      },
+      "title": "AIProvenance",
+      "type": "object"
+    },
+    "Origin": {
+      "enum": [
+        "human",
+        "ai",
+        "hybrid"
+      ],
+      "title": "Origin",
+      "type": "string"
+    },
+    "Status": {
+      "enum": [
+        "hypothesis",
+        "candidate",
+        "validated",
+        "reported",
+        "embargoed",
+        "disclosed",
+        "public",
+        "rejected"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "id": {
+      "pattern": "^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "kind": {
+      "const": "finding",
+      "default": "finding",
+      "title": "Kind",
+      "type": "string"
+    },
+    "hypothesis": {
+      "title": "Hypothesis",
+      "type": "string"
+    },
+    "target": {
+      "title": "Target",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "origin": {
+      "$ref": "#/$defs/Origin"
+    },
+    "status": {
+      "$ref": "#/$defs/Status"
+    },
+    "security_boundary": {
+      "title": "Security Boundary",
+      "type": "string"
+    },
+    "ai": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/AIProvenance"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "hypothesis",
+    "target",
+    "title",
+    "origin",
+    "status",
+    "security_boundary"
+  ],
+  "title": "Finding",
+  "type": "object"
+}

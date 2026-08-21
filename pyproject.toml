@@ -1,0 +1,32 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "vulnarc"
+version = "0.1.0"
+description = "Human–AI collaborative vulnerability research infrastructure"
+readme = "README.md"
+requires-python = ">=3.12"
+license = {text = "Apache-2.0"}
+dependencies = ["typer>=0.12,<1", "pydantic>=2.8,<3", "PyYAML>=6,<7"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9", "ruff>=0.6"]
+
+[project.scripts]
+vulnarc = "vulnarc.cli:app"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/vulnarc"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

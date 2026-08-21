@@ -1,0 +1,173 @@
+{
+  "$defs": {
+    "ArmMetrics": {
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/Origin"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "hypotheses": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Hypotheses",
+          "type": "integer"
+        },
+        "validated": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Validated",
+          "type": "integer"
+        },
+        "rejected": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Rejected",
+          "type": "integer"
+        },
+        "unique": {
+          "default": 0,
+          "minimum": 0,
+          "title": "Unique",
+          "type": "integer"
+        },
+        "time_hours": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Time Hours"
+        },
+        "tokens": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tokens"
+        },
+        "api_cost": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Api Cost"
+        }
+      },
+      "required": [
+        "name",
+        "origin"
+      ],
+      "title": "ArmMetrics",
+      "type": "object"
+    },
+    "Origin": {
+      "enum": [
+        "human",
+        "ai",
+        "hybrid"
+      ],
+      "title": "Origin",
+      "type": "string"
+    }
+  },
+  "properties": {
+    "id": {
+      "pattern": "^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)+$",
+      "title": "Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "kind": {
+      "const": "experiment",
+      "default": "experiment",
+      "title": "Kind",
+      "type": "string"
+    },
+    "title": {
+      "title": "Title",
+      "type": "string"
+    },
+    "target": {
+      "title": "Target",
+      "type": "string"
+    },
+    "audit_scope": {
+      "title": "Audit Scope",
+      "type": "string"
+    },
+    "time_budget_hours": {
+      "exclusiveMinimum": 0,
+      "title": "Time Budget Hours",
+      "type": "number"
+    },
+    "arms": {
+      "items": {
+        "$ref": "#/$defs/ArmMetrics"
+      },
+      "minItems": 2,
+      "title": "Arms",
+      "type": "array"
+    },
+    "overlap": {
+      "default": 0,
+      "minimum": 0,
+      "title": "Overlap",
+      "type": "integer"
+    },
+    "limitations": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Limitations",
+      "type": "array"
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "title",
+    "target",
+    "audit_scope",
+    "time_budget_hours",
+    "arms"
+  ],
+  "title": "Experiment",
+  "type": "object"
+}
