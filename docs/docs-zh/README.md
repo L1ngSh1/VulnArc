@@ -28,9 +28,10 @@ python3.12 -m venv .venv
 . .venv/bin/activate
 pip install -e '.[dev]'
 vulnarc new hypothesis --target example-project --title 'Synthetic authorization question' \
-  --origin human --security-boundary 'member -> project'
-vulnarc validate
-vulnarc stats
+  --origin human --security-boundary 'member -> project' \
+  --workspace /absolute/path/to/VulnArc-Research
+vulnarc validate --workspace /absolute/path/to/VulnArc-Research
+vulnarc stats --workspace /absolute/path/to/VulnArc-Research
 ```
 
 对于尚未披露的工作，请使用 `--workspace /absolute/path/to/VulnArc-Research`。CLI 永远不会执行提交、推送、发布或上传操作。
@@ -40,3 +41,5 @@ vulnarc stats
 `validate`、`new hypothesis`、`new experiment`、`new case`、`list`、`status`、`stats` 和 `compare`。
 
 参阅[方法论](methodology.md)、[研究工作流](research-workflow.md)和[工作区模型](workspace-model.md)。
+
+- [已有报告登记一页速查](report-quickstart.md)：新增、列表、反馈、纠正与备份恢复。

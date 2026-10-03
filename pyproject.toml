@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "vulnarc"
-version = "0.1.0"
+dynamic = ["version"]
 description = "Human–AI collaborative vulnerability research infrastructure"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -16,9 +16,16 @@ dev = ["pytest>=8,<9", "ruff>=0.6"]
 
 [project.scripts]
 vulnarc = "vulnarc.cli:app"
+va = "vulnarc.compat:main"
+
+[tool.hatch.version]
+path = "src/vulnarc/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/vulnarc"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"templates" = "vulnarc/templates"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
