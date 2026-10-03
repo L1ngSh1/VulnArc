@@ -1,6 +1,5 @@
 """Local case registration from a reviewed manifest; never executes report contents."""
 
-import hashlib
 import json
 import re
 import unicodedata
@@ -12,6 +11,7 @@ from zoneinfo import ZoneInfo
 import typer
 
 from .history import event, now
+from .materials import verify_case_materials as verify_materials
 from .models import CaseDetails, VACase
 from .storage import (
     create_record,
@@ -40,23 +40,6 @@ def read_intake(path: Path) -> tuple[CaseDetails, str]:
         json.dumps(details.model_dump(mode="json"), ensure_ascii=False, sort_keys=True).encode()
     )
     return details, fingerprint
-
-
-def verify_materials(record: CaseDetails) -> None:
-    proofs = list(record.evidence)
-    proofs += [r.source for r in record.ratings]
-    proofs += [r.source for r in record.reference_cases]
-    for ref in [*record.materials, *proofs]:
-        if not ref.path or not ref.sha256:
-            raise ValueError("case material/evidence needs a path and SHA-256")
-        path = Path(ref.path)
-        if not path.is_absolute() or not path.is_file():
-            raise ValueError(f"missing absolute source path: {ref.path}")
-        if hashlib.sha256(path.read_bytes()).hexdigest() != ref.sha256:
-            raise ValueError(f"source hash changed: {ref.path}")
-        line = getattr(ref, "line", None)
-        if line and line > len(path.read_text(encoding="utf-8").splitlines()):
-            raise ValueError(f"source line out of range: {ref.path}:{line}")
 
 
 def link(path: str, label: str) -> str:

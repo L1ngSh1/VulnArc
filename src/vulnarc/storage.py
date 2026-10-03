@@ -14,6 +14,7 @@ from uuid import uuid4
 import yaml
 from pydantic import ValidationError
 
+from .materials import material_problem, verify_case_materials
 from .models import Experiment, Finding, Hypothesis, Pattern, PublicCase, Report, Target, VACase
 
 MODELS = {
@@ -305,9 +306,7 @@ def validate_workspace(workspace: Path) -> list[str]:
                 errors.append(f"{path}: duplicate id {record.id} (also {seen[record.id]})")
             seen[record.id] = path
             if isinstance(record, VACase):
-                from .va import verify_materials
-
-                verify_materials(record)
+                verify_case_materials(record)
                 for name in ("case.md", "materials.md", "timeline.md", "learning.md"):
                     if not (path.parent / name).is_file():
                         errors.append(f"{path}: missing case document {name}")
@@ -329,31 +328,27 @@ def validate_workspace(workspace: Path) -> list[str]:
                 materials = list(record.related_documents)
                 if record.original_report:
                     materials.append(record.original_report)
+                # Legacy reports permit relative paths and optional hashes.
+                messages = {
+                    "missing": "missing material",
+                    "hash": "hash mismatch for",
+                    "line": "evidence line out of range",
+                }
                 for ref in materials:
-                    material = Path(ref.path)
-                    if not material.is_absolute():
-                        material = workspace / material
-                    if not material.is_file():
-                        errors.append(f"{path}: missing material {ref.path}")
-                    elif ref.sha256 and digest(material.read_bytes()) != ref.sha256:
-                        errors.append(f"{path}: hash mismatch for {ref.path}")
+                    problem = material_problem(ref.path, ref.sha256, workspace=workspace)
+                    if problem:
+                        errors.append(f"{path}: {messages[problem]} {ref.path}")
                 for evidence in (
                     record.submission_evidence
                     + record.status_evidence
                     + [e for event in record.history for e in event.evidence]
                 ):
                     if evidence.path:
-                        material = Path(evidence.path)
-                        if not material.is_absolute():
-                            material = workspace / material
-                        if not material.is_file():
-                            errors.append(f"{path}: missing material {evidence.path}")
-                        elif evidence.sha256 and digest(material.read_bytes()) != evidence.sha256:
-                            errors.append(f"{path}: hash mismatch for {evidence.path}")
-                        elif evidence.line and evidence.line > len(
-                            material.read_text().splitlines()
-                        ):
-                            errors.append(f"{path}: evidence line out of range {evidence.path}")
+                        problem = material_problem(
+                            evidence.path, evidence.sha256, evidence.line, workspace=workspace
+                        )
+                        if problem:
+                            errors.append(f"{path}: {messages[problem]} {evidence.path}")
             if path.relative_to(workspace).parts[:2] == ("cases", "public") and not isinstance(
                 record, PublicCase
             ):
