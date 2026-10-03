@@ -10,8 +10,9 @@ snapshots, not development roots. The installed `vulnarc` command is the formal 
 
 ```bash
 uv build --wheel --out-dir dist
+uv export --frozen --no-emit-project --format requirements-txt --output-file dist/runtime-requirements.txt
 uv venv --python 3.12 .venv-release
-uv pip install --python .venv-release/bin/python dist/vulnarc-0.2.0-py3-none-any.whl
+uv pip install --python .venv-release/bin/python -r dist/runtime-requirements.txt dist/vulnarc-0.2.0-py3-none-any.whl
 export PATH="$PWD/.venv-release/bin:$PATH"
 vulnarc --help
 ```

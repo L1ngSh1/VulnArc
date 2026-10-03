@@ -11,3 +11,12 @@ SHA-256 comparison and guarded byte backups. Recovery requires the exact post-wr
 Dated historical feedback does not move current state backwards; corrections append events.
 `report import-inventory` is restricted to the 2026-10-01 inventory, defaults to a zero-write
 preview, and applies each record separately. Report counts never enter research validation rates.
+
+## VA archives and shared material validation
+
+VA cases and RPT reports remain independent; see the [maintenance contract](maintenance.md).
+`materials.py` owns shared path, SHA-256 and evidence-line checks without Typer dependencies.
+Storage calls that module directly, not the VA CLI. Report's relative paths/optional hashes
+and VA's absolute paths/required hashes remain distinct. Registration documents are snapshots;
+handwritten learning notes are preserved. See [installation](installation.md) for the single
+maintained source and installed command; dated delivery directories are historical only.

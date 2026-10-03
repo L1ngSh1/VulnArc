@@ -1,6 +1,6 @@
 # 已有报告登记：一页速查
 
-一期保留 Markdown + YAML 和研究命令。`report` 不要求假设、来源或安全边界；只必答项目与标题。所有命令显式传 `--workspace`，未知事实留 `unknown`。没有自动访问平台或投稿动作。
+旧 RPT 继续保留 Markdown + YAML 和研究命令。`report` 不要求假设、来源或安全边界；只必答项目与标题。所有命令显式传 `--workspace`，未知事实留 `unknown`。没有自动访问平台或投稿动作。
 
 ```sh
 WS=/absolute/path/to/VulnArc-Research
@@ -31,6 +31,9 @@ vulnarc stats -w "$WS"
 # 恢复本次误改：BACKUP_ID 来自 update/status 的输出
 vulnarc restore BACKUP_ID -w "$WS"
 ```
+
+新案例优先使用 VA；本页用于旧 RPT 的原命令维护，不为 VA 自动生成第二份报告。
+共同职责见[维护约定](../maintenance.md)，安装见[统一说明](../installation.md)。
 
 **时间与状态**：建档时间不是提交时间。`submitted_at` / `status_at` 可空；原始模糊日期单独保留。带日期的反馈早于当前依据，或日期先后无法确定时，默认只记历史；显式 `--apply-current --reason` 并确认后才校正当前字段。`Pending program review`、转工程验证映射 `pending_review`，未知原文映射 `unknown`。Duplicate、Informative 不改变研究对象；resolved 不推断公开、CVE 或赏金。
 
