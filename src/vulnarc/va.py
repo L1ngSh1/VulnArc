@@ -323,6 +323,8 @@ def show(record_id: str, workspace: Workspace):
         reading_entries(record, workspace)
         if not material_entries(record):
             raise typer.Exit(1)
+        # Keep show's existing evidence/rating/reference checks, after exposing the entrances.
+        verify_materials(record)
     except (ValueError, OSError) as exc:
         typer.echo(f"查阅未完成：{exc}", err=True)
         raise typer.Exit(1) from exc

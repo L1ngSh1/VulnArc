@@ -240,3 +240,21 @@ def test_non_va_record_is_not_read_as_va(archive):
     modify_metadata(archive, lambda d: d.update(kind="report"))
     result = invoke(archive, "read")
     assert result.exit_code == 1 and PRIMARY not in result.output
+
+
+@pytest.mark.parametrize("problem", ["missing", "line"])
+def test_show_keeps_original_proof_validation_and_still_exposes_entrances(archive, problem):
+    def change(data):
+        if problem == "missing":
+            data["evidence"][0]["path"] = str(archive[3].parent / "missing-proof.md")
+        else:
+            data["evidence"][0]["line"] = 999
+
+    modify_metadata(archive, change)
+    result = invoke(archive, "show")
+    assert result.exit_code == 1
+    assert (
+        "missing absolute source path" if problem == "missing" else "source line out of range"
+    ) in result.output
+    assert "vulnarc va read" in result.output and "vulnarc va materials" in result.output
+    assert invoke(archive, "read").stdout == PRIMARY

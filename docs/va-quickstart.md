@@ -40,7 +40,8 @@ role, label, absolute path, registered SHA-256 and current check result. It cont
 a missing/unreadable/changed file and exits 1 if any material fails. A broken attachment
 never blocks reading a verified report. `show` retains the card, prints runnable read and
 materials commands with the workspace, and includes these per-file checks (exit 1 on failure).
-These checks describe source integrity, not new vulnerability validation or evidence-line checks.
+Per-material checks describe source integrity, not new vulnerability validation. `show` also
+retains its existing evidence/rating/reference-source and line checks after exposing entry points.
 
 `check` remains the full workspace/evidence/document validator. Moving or editing originals
 makes validation fail; reads never update metadata, notes, history or hashes. The formal
