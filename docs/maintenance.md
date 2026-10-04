@@ -32,8 +32,11 @@ VA 案例数由 `vulnarc va list` 给出，RPT 报告数由 `report list` / `sta
 研究记录使用原 `list` / `stats` 入口；全库清单包括不同 kind，不能当作一个去重漏洞数。
 VA and RPT counts are distinct; neither changes research validation/rejection denominators.
 
-正文阅读、笔记编辑命令、VA update、统一实时时间线、交互登记、检索与网页仍是计划项。
-Body reading, note editing commands, VA update, a unified live timeline, interactive intake,
+正文阅读使用 `va read`，材料实时入口使用 `va materials`；两者只读，不回写快照或元数据。
+`show` 保留编号卡并提示入口；每份材料独立校验，异常时仍显示其余入口。
+笔记编辑命令、VA update、统一实时时间线、交互登记、检索与网页仍是计划项。
+Body reading and the live material index use `va read` / `va materials`, without archive writes.
+Note editing commands, VA update, a unified live timeline, interactive intake,
 search and a web UI are not implemented. No schema upgrade, conversion or ID reuse is introduced.
 
 相关入口：[安装](installation.md) · [VA 中文](docs-zh/va-quickstart.md) ·

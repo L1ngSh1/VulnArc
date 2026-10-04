@@ -14,13 +14,14 @@ def test_shortcut_explicit_workspace_wins(monkeypatch, option):
     assert received == {"args": ["va", "list", *option], "prog_name": "va"}
 
 
-def test_shortcut_uses_workspace_environment(monkeypatch):
+@pytest.mark.parametrize("command", ["check", "read", "materials"])
+def test_shortcut_uses_workspace_environment(monkeypatch, command):
     received = {}
     monkeypatch.setenv("VULNARC_WORKSPACE", "/environment")
-    monkeypatch.setattr("sys.argv", ["va", "check"])
+    monkeypatch.setattr("sys.argv", ["va", command])
     monkeypatch.setattr(compat, "app", lambda **kw: received.update(kw))
     compat.main()
-    assert received["args"] == ["va", "check", "--workspace", "/environment"]
+    assert received["args"] == ["va", command, "--workspace", "/environment"]
 
 
 def test_shortcut_keeps_existing_default(monkeypatch):

@@ -19,25 +19,29 @@ vulnarc va register /absolute/path/to/reviewed-intake.json --workspace /absolute
 vulnarc va register /absolute/path/to/reviewed-intake.json --workspace /absolute/path/to/VulnArc-Research --apply
 vulnarc va list --workspace /absolute/path/to/VulnArc-Research
 vulnarc va show VA-2026-0001 --workspace /absolute/path/to/VulnArc-Research
+vulnarc va read VA-2026-0001 --report primary --workspace /absolute/path/to/VulnArc-Research
+vulnarc va read VA-2026-0001 --report translation --workspace /absolute/path/to/VulnArc-Research
+vulnarc va materials VA-2026-0001 --workspace /absolute/path/to/VulnArc-Research
 vulnarc va check --workspace /absolute/path/to/VulnArc-Research
 ```
 
 Preview does not write or allocate an ID. `--apply` registers a local `VA-YYYY-NNNN` case,
 not a CVE or vendor acceptance. Repeating an identical intake preserves its ID and manual
-notes. `show` displays a card and document path, not the original report body.
+notes. `read` prints the full verified main report or translation; `materials` lists current
+source paths, roles and hashes. `show` includes both entry points and current material status.
 Read the [VA guide](docs/va-quickstart.md) and [maintenance contract](docs/maintenance.md).
 
 ## Implemented commands
 
 | Purpose | Current commands |
 | --- | --- |
-| New local case archives | `va register`, `va list`, `va show`, `va check` |
+| New local case archives | `va register`, `va list`, `va show`, `va read`, `va materials`, `va check` |
 | Existing RPT records | `report add`, `report list`, `report show`, `report update` |
 | One-off legacy inventory | `report import-inventory` (specific format; preview by default) |
 | Workspace and recovery | `validate`, `list`, `restore` |
 | Advanced research | `new hypothesis`, `new experiment`, `new case`, `status`, `stats`, `compare` |
 
-**Planned, not implemented:** report-body reader, note editing command, VA update, unified
+**Planned, not implemented:** note editing command, VA update, unified
 live timeline, interactive case intake, search and web UI. VA/RPT models remain separate;
 there is no automatic conversion or second RPT for a new VA case.
 

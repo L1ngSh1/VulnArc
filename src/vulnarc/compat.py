@@ -9,7 +9,7 @@ from .cli import app
 
 def main() -> None:
     args = sys.argv[1:]
-    if args and args[0] in {"register", "show", "list", "check"}:
+    if args and args[0] in {"register", "show", "list", "check", "read", "materials"}:
         explicit = any(
             arg in {"--workspace", "-w"}
             or arg.startswith("--workspace=")

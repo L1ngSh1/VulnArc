@@ -4,13 +4,16 @@ import json
 import re
 import unicodedata
 from datetime import datetime
+from enum import StrEnum
 from pathlib import Path
+from shlex import quote
 from typing import Annotated
 from zoneinfo import ZoneInfo
 
 import typer
 
 from .history import event, now
+from .materials import material_problem
 from .materials import verify_case_materials as verify_materials
 from .models import CaseDetails, VACase
 from .storage import (
@@ -25,6 +28,58 @@ from .storage import (
 va_app = typer.Typer(help="VA 案例档案：登记、查阅、总账。仅处理本地材料。", no_args_is_help=True)
 Workspace = Annotated[Path, typer.Option("--workspace", "-w", help="私有案例工作区")]
 INTAKE_SCHEMA = "vulnarc-case-intake-v1"
+
+
+class ReportChoice(StrEnum):
+    PRIMARY = "primary"
+    TRANSLATION = "translation"
+
+
+REPORT_ROLES = {ReportChoice.PRIMARY: "primary_report", ReportChoice.TRANSLATION: "translation"}
+
+
+def material_status(ref) -> tuple[str, bool]:
+    """Inspect each source independently so a broken attachment does not hide the others."""
+    try:
+        problem = material_problem(
+            ref.path, ref.sha256, absolute_required=True, hash_required=True
+        )
+    except OSError as exc:
+        return f"读取失败：{clean(str(exc))}", False
+    messages = {
+        None: "通过（SHA-256 一致）",
+        "required": "缺少路径或 SHA-256",
+        "missing": "文件缺失或不是绝对文件路径",
+        "hash": "哈希变化（source hash changed）",
+    }
+    return messages[problem], problem is None
+
+
+def material_entries(record: VACase) -> bool:
+    """Render current metadata, never the potentially stale materials.md snapshot."""
+    valid = True
+    for ref in record.materials:
+        status, passed = material_status(ref)
+        valid &= passed
+        typer.echo(f"- {clean(ref.role)} · {clean(ref.label)}")
+        typer.echo(f"  路径：{clean(ref.path)}")
+        typer.echo(f"  登记 SHA-256：{ref.sha256 or '待补'}")
+        typer.echo(f"  校验：{status}")
+    return valid
+
+
+def reading_entries(record: VACase, workspace: Path) -> None:
+    """Commands include the explicit workspace required by the formal entry point."""
+    for choice, role in REPORT_ROLES.items():
+        refs = [ref for ref in record.materials if ref.role == role]
+        state = f"{len(refs)} 份" if refs else "未登记"
+        typer.echo(f"正文 {choice.value}：{state}")
+        if refs:
+            typer.echo(
+                f"  vulnarc va read {record.id} --report {choice.value}"
+                f" --workspace {quote(str(workspace))}"
+            )
+    typer.echo(f"材料入口：vulnarc va materials {record.id} --workspace {quote(str(workspace))}")
 
 
 def local_year() -> str:
@@ -188,7 +243,9 @@ def display_width(text: str) -> int:
     )
 
 
-def receipt(record: VACase, path: Path, mode="show") -> None:
+def receipt(
+    record: VACase, path: Path, mode="show", *, material_summary: str | None = None
+) -> None:
     caption = {
         "created": "已为您分配好 VA 编号",
         "existing": "已找到原档案 · 未重复分配",
@@ -218,7 +275,7 @@ def receipt(record: VACase, path: Path, mode="show") -> None:
         f"分类  {record.category}",
         f"弱点  {', '.join(record.cwe) or '待补'}",
         rating,
-        f"材料  {len(record.materials)} 份 · SHA-256 已核对",
+        f"材料  {material_summary or f'{len(record.materials)} 份 · SHA-256 已核对'}",
         status,
         "",
         "本地归档完成 · 本次未向外部平台发送",
@@ -258,14 +315,71 @@ def register(
 
 @va_app.command("show")
 def show(record_id: str, workspace: Workspace):
-    """显示案例编号卡片，不改动档案。"""
+    """显示案例卡、正文入口和当前材料校验状态，不改动档案。"""
     try:
         path, data = find_record(workspace, record_id)
         record = VACase.model_validate(data)
-        verify_materials(record)
-        receipt(record, path.parent)
+        receipt(record, path.parent, material_summary=f"{len(record.materials)} 份 · 校验见下方")
+        reading_entries(record, workspace)
+        if not material_entries(record):
+            raise typer.Exit(1)
     except (ValueError, OSError) as exc:
         typer.echo(f"查阅未完成：{exc}", err=True)
+        raise typer.Exit(1) from exc
+
+
+@va_app.command("read")
+def read_report(
+    record_id: str,
+    workspace: Workspace,
+    report: Annotated[ReportChoice, typer.Option("--report", help="主报告或中文翻译")]
+    = ReportChoice.PRIMARY,
+):
+    """按 VA 编号输出完整 UTF-8 Markdown/文本正文；只核对所选原件，不执行内容。"""
+    try:
+        _, data = find_record(workspace, record_id)
+        record = VACase.model_validate(data)
+        refs = [ref for ref in record.materials if ref.role == REPORT_ROLES[report]]
+        if not refs:
+            raise ValueError(f"未登记 {report.value} 报告；用 va materials {record.id} 查看材料")
+        if len(refs) != 1:
+            paths = ", ".join(clean(ref.path) for ref in refs)
+            raise ValueError(f"{report.value} 报告不唯一（{len(refs)} 份）：{paths}")
+        ref = refs[0]
+        source = Path(ref.path)
+        if not source.is_absolute() or not source.is_file():
+            raise ValueError(f"报告文件缺失或不是绝对文件路径：{clean(ref.path)}")
+        if not ref.sha256:
+            raise ValueError(f"报告缺少 SHA-256：{clean(ref.path)}")
+        # Hash and decode the same byte snapshot; never reopen after verification.
+        content = source.read_bytes()
+        if digest(content) != ref.sha256:
+            raise ValueError(f"报告哈希变化（source hash changed）：{clean(ref.path)}")
+        if source.suffix.lower() not in {".md", ".markdown", ".txt"}:
+            raise ValueError(f"正文阅读支持 UTF-8 Markdown/文本；其他格式见材料入口：{source}")
+        try:
+            text = content.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise ValueError(f"报告不是 UTF-8 文本：{clean(ref.path)}") from exc
+        if any(unicodedata.category(c) == "Cc" and c not in "\n\r\t" for c in text):
+            raise ValueError(f"报告含终端控制字符：{clean(ref.path)}")
+        typer.echo(text, nl=False)
+    except (ValueError, OSError) as exc:
+        typer.echo(f"正文查阅未完成：{clean(str(exc))}", err=True)
+        raise typer.Exit(1) from exc
+
+
+@va_app.command("materials")
+def materials(record_id: str, workspace: Workspace):
+    """按 VA 编号逐项列出报告和附件的位置、角色、登记哈希和当前校验情况。"""
+    try:
+        _, data = find_record(workspace, record_id)
+        record = VACase.model_validate(data)
+        typer.echo(f"{record.id} · 当前报告与材料（只读）")
+        if not material_entries(record):
+            raise typer.Exit(1)
+    except (ValueError, OSError) as exc:
+        typer.echo(f"材料查阅未完成：{clean(str(exc))}", err=True)
         raise typer.Exit(1) from exc
 
 
