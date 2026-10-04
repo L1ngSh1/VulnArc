@@ -1,47 +1,5 @@
 {
   "$defs": {
-    "AIProvenance": {
-      "properties": {
-        "model": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Model"
-        },
-        "harness": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Harness"
-        },
-        "reasoning_mode": {
-          "anyOf": [
-            {
-              "type": "string"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null,
-          "title": "Reasoning Mode"
-        }
-      },
-      "title": "AIProvenance",
-      "type": "object"
-    },
     "Change": {
       "properties": {
         "before": {
@@ -221,27 +179,55 @@
       "title": "HistoryEvent",
       "type": "object"
     },
-    "Origin": {
-      "enum": [
-        "human",
-        "ai",
-        "hybrid"
+    "MaterialRef": {
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        }
+      },
+      "required": [
+        "path"
       ],
-      "title": "Origin",
+      "title": "MaterialRef",
+      "type": "object"
+    },
+    "ProcessingStatus": {
+      "enum": [
+        "unknown",
+        "pending_review",
+        "triaged",
+        "accepted",
+        "duplicate",
+        "informative",
+        "rejected",
+        "resolved"
+      ],
+      "title": "ProcessingStatus",
       "type": "string"
     },
-    "Status": {
+    "SubmissionStatus": {
       "enum": [
-        "hypothesis",
-        "candidate",
-        "validated",
-        "reported",
-        "embargoed",
-        "disclosed",
-        "public",
-        "rejected"
+        "unknown",
+        "not_submitted",
+        "submitted",
+        "withdrawn"
       ],
-      "title": "Status",
+      "title": "SubmissionStatus",
       "type": "string"
     }
   },
@@ -277,55 +263,233 @@
       "type": "array"
     },
     "kind": {
-      "const": "finding",
-      "default": "finding",
+      "const": "report",
+      "default": "report",
       "title": "Kind",
       "type": "string"
     },
-    "hypothesis": {
-      "title": "Hypothesis",
-      "type": "string"
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
     },
-    "target": {
-      "title": "Target",
+    "project": {
+      "minLength": 1,
+      "title": "Project",
       "type": "string"
     },
     "title": {
+      "minLength": 1,
       "title": "Title",
       "type": "string"
     },
-    "origin": {
-      "$ref": "#/$defs/Origin"
-    },
-    "status": {
-      "$ref": "#/$defs/Status"
-    },
-    "security_boundary": {
-      "title": "Security Boundary",
-      "type": "string"
-    },
-    "ai": {
+    "channel": {
       "anyOf": [
         {
-          "$ref": "#/$defs/AIProvenance"
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Channel"
+    },
+    "external_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "External Id"
+    },
+    "external_url": {
+      "anyOf": [
+        {
+          "format": "uri",
+          "maxLength": 2083,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "External Url"
+    },
+    "submission_status": {
+      "$ref": "#/$defs/SubmissionStatus",
+      "default": "unknown"
+    },
+    "submission_evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "title": "Submission Evidence",
+      "type": "array"
+    },
+    "submitted_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Submitted At"
+    },
+    "submitted_at_raw": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Submitted At Raw"
+    },
+    "processing_status": {
+      "$ref": "#/$defs/ProcessingStatus",
+      "default": "unknown"
+    },
+    "platform_status_raw": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Platform Status Raw"
+    },
+    "local_status_raw": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Local Status Raw"
+    },
+    "status_evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "title": "Status Evidence",
+      "type": "array"
+    },
+    "status_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Status At"
+    },
+    "status_at_raw": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Status At Raw"
+    },
+    "original_report": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/MaterialRef"
         },
         {
           "type": "null"
         }
       ],
       "default": null
+    },
+    "related_documents": {
+      "items": {
+        "$ref": "#/$defs/MaterialRef"
+      },
+      "title": "Related Documents",
+      "type": "array"
+    },
+    "missing_information": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Missing Information",
+      "type": "array"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
+    "research_refs": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Research Refs",
+      "type": "array"
+    },
+    "source_key": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Source Key"
+    },
+    "import_fingerprint": {
+      "anyOf": [
+        {
+          "pattern": "^[a-f0-9]{64}$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Import Fingerprint"
     }
   },
   "required": [
     "id",
     "created_at",
-    "hypothesis",
-    "target",
-    "title",
-    "origin",
-    "status",
-    "security_boundary"
+    "project",
+    "title"
   ],
-  "title": "Finding",
+  "title": "Report",
   "type": "object"
 }

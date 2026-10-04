@@ -10,3 +10,14 @@ jobs:
       - run: pip install -e '.[dev]'
       - run: ruff check .
       - run: pytest -q
+      - name: Installed wheel regression outside the source directory
+        shell: bash
+        run: |
+          python -m pip wheel --no-deps . --wheel-dir dist
+          SOURCE="$PWD"
+          WHEEL_ENV="$(mktemp -d)/venv"
+          python -m venv "$WHEEL_ENV"
+          "$WHEEL_ENV/bin/pip" install "$SOURCE"/dist/vulnarc-*.whl pytest
+          cd "$(mktemp -d)"
+          env -u PYTHONPATH "$WHEEL_ENV/bin/python" -m pytest -q -c /dev/null \
+            --import-mode=prepend -p no:cacheprovider "$SOURCE/tests"

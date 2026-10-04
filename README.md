@@ -1,42 +1,54 @@
 # VulnArc — Human–AI Collaborative Vulnerability Research
 
-**From hypothesis to disclosure.**
+[中文首页](docs/docs-zh/README.md)
 
-VulnArc is a repo-first research notebook for disciplined, authorized vulnerability research. Markdown preserves reasoning; YAML preserves lifecycle and provenance; a small CLI removes repetitive work. **An AI finding is not a vulnerability**: every claim remains a hypothesis or candidate until reproducible evidence and human validation support it.
+**From hypothesis to disclosure, with existing reports kept intact.**
 
-## Four areas
+VulnArc is a repo-first research notebook. YAML records structured facts and history;
+Markdown preserves reasoning and handwritten notes. An AI finding remains a hypothesis
+until reproducible evidence and human validation support it. The CLI never submits,
+pushes, publishes or uploads records.
 
-- **Research Cases** — sanitized records published only after coordinated disclosure.
-- **Vulnerability Patterns** — reusable lessons extracted from validated cases.
-- **Human × AI Experiments** — transparent comparisons without fabricated data.
-- **Research Methodology** — attack-surface mapping, validation, rejection, and disclosure.
+## Start with an existing report
 
-```mermaid
-flowchart LR
-  H[Human research] --> Y[Hypotheses]
-  A[External AI] --> Y
-  Y --> V[Manual validation]
-  V --> R[Rejected]
-  V --> D[Disclosure]
-  D --> P[Public case and patterns]
-```
-
-## Quick start
+Use the [single release installation guide](docs/installation.md), then a reviewed
+intake JSON and an explicitly selected external workspace:
 
 ```bash
-python3.12 -m venv .venv
-. .venv/bin/activate
-pip install -e '.[dev]'
-vulnarc new hypothesis --target example-project --title 'Synthetic authorization question' \
-  --origin human --security-boundary 'member -> project'
-vulnarc validate
-vulnarc stats
+vulnarc va register /absolute/path/to/reviewed-intake.json --workspace /absolute/path/to/VulnArc-Research
+vulnarc va register /absolute/path/to/reviewed-intake.json --workspace /absolute/path/to/VulnArc-Research --apply
+vulnarc va list --workspace /absolute/path/to/VulnArc-Research
+vulnarc va show VA-2026-0001 --workspace /absolute/path/to/VulnArc-Research
+vulnarc va check --workspace /absolute/path/to/VulnArc-Research
 ```
 
-Use `--workspace /absolute/path/to/VulnArc-Research` for undisclosed work. The CLI never commits, pushes, publishes, or uploads.
+Preview does not write or allocate an ID. `--apply` registers a local `VA-YYYY-NNNN` case,
+not a CVE or vendor acceptance. Repeating an identical intake preserves its ID and manual
+notes. `show` displays a card and document path, not the original report body.
+Read the [VA guide](docs/va-quickstart.md) and [maintenance contract](docs/maintenance.md).
 
-## Commands
+## Implemented commands
 
-`validate`, `new hypothesis`, `new experiment`, `new case`, `list`, `status`, `stats`, and `compare`.
+| Purpose | Current commands |
+| --- | --- |
+| New local case archives | `va register`, `va list`, `va show`, `va check` |
+| Existing RPT records | `report add`, `report list`, `report show`, `report update` |
+| One-off legacy inventory | `report import-inventory` (specific format; preview by default) |
+| Workspace and recovery | `validate`, `list`, `restore` |
+| Advanced research | `new hypothesis`, `new experiment`, `new case`, `status`, `stats`, `compare` |
 
-See [methodology](docs/methodology.md), [workflow](docs/research-workflow.md), and the [workspace model](docs/workspace-model.md).
+**Planned, not implemented:** report-body reader, note editing command, VA update, unified
+live timeline, interactive case intake, search and web UI. VA/RPT models remain separate;
+there is no automatic conversion or second RPT for a new VA case.
+
+## Advanced research
+
+HYP/EXP and disclosed public cases remain available; they are not prerequisites for
+archiving an existing report. See [workflow](docs/research-workflow.md),
+[methodology](docs/methodology.md), [architecture](docs/architecture.md) and
+[workspace model](docs/workspace-model.md). Existing RPT feedback and recovery are documented
+in the [report reference](docs/docs-zh/report-quickstart.md).
+
+Counts stay distinct: `va list` reports VA cases; `report list` and the report section of
+`stats` describe RPTs; research metrics retain their original population. `list` includes
+all metadata record kinds, not one deduplicated vulnerability total.

@@ -1,0 +1,551 @@
+{
+  "$defs": {
+    "CaseMaterial": {
+      "properties": {
+        "path": {
+          "minLength": 1,
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        },
+        "role": {
+          "title": "Role",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "role",
+        "label"
+      ],
+      "title": "CaseMaterial",
+      "type": "object"
+    },
+    "CaseReference": {
+      "properties": {
+        "identifier": {
+          "title": "Identifier",
+          "type": "string"
+        },
+        "relationship": {
+          "const": "reference_only",
+          "default": "reference_only",
+          "title": "Relationship",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/Evidence"
+        }
+      },
+      "required": [
+        "identifier",
+        "source"
+      ],
+      "title": "CaseReference",
+      "type": "object"
+    },
+    "Change": {
+      "properties": {
+        "before": {
+          "default": null,
+          "title": "Before"
+        },
+        "after": {
+          "default": null,
+          "title": "After"
+        }
+      },
+      "title": "Change",
+      "type": "object"
+    },
+    "Evidence": {
+      "properties": {
+        "type": {
+          "minLength": 1,
+          "title": "Type",
+          "type": "string"
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        },
+        "line": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Line"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "date_raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Date Raw"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "title": "Evidence",
+      "type": "object"
+    },
+    "HistoryEvent": {
+      "properties": {
+        "id": {
+          "minLength": 1,
+          "title": "Id",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "title": "Recorded At",
+          "type": "string"
+        },
+        "event_type": {
+          "minLength": 1,
+          "title": "Event Type",
+          "type": "string"
+        },
+        "actual_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actual At"
+        },
+        "date_raw": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Date Raw"
+        },
+        "changes": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Change"
+          },
+          "title": "Changes",
+          "type": "object"
+        },
+        "note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Note"
+        },
+        "evidence": {
+          "items": {
+            "$ref": "#/$defs/Evidence"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "corrects_event_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Corrects Event Id"
+        }
+      },
+      "required": [
+        "id",
+        "recorded_at",
+        "event_type"
+      ],
+      "title": "HistoryEvent",
+      "type": "object"
+    },
+    "ProcessingStatus": {
+      "enum": [
+        "unknown",
+        "pending_review",
+        "triaged",
+        "accepted",
+        "duplicate",
+        "informative",
+        "rejected",
+        "resolved"
+      ],
+      "title": "ProcessingStatus",
+      "type": "string"
+    },
+    "RecordedRating": {
+      "properties": {
+        "version": {
+          "enum": [
+            "3.1",
+            "4.0"
+          ],
+          "title": "Version",
+          "type": "string"
+        },
+        "score": {
+          "maximum": 10,
+          "minimum": 0,
+          "title": "Score",
+          "type": "number"
+        },
+        "vector": {
+          "title": "Vector",
+          "type": "string"
+        },
+        "attribution": {
+          "enum": [
+            "reporter",
+            "reporter_alternative",
+            "vendor"
+          ],
+          "title": "Attribution",
+          "type": "string"
+        },
+        "source": {
+          "$ref": "#/$defs/Evidence"
+        }
+      },
+      "required": [
+        "version",
+        "score",
+        "vector",
+        "attribution",
+        "source"
+      ],
+      "title": "RecordedRating",
+      "type": "object"
+    },
+    "SubmissionStatus": {
+      "enum": [
+        "unknown",
+        "not_submitted",
+        "submitted",
+        "withdrawn"
+      ],
+      "title": "SubmissionStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "pattern": "^VA-[0-9]{4}-[0-9]{4,}$",
+      "title": "Id",
+      "type": "string"
+    },
+    "created_at": {
+      "format": "date-time",
+      "title": "Created At",
+      "type": "string"
+    },
+    "updated_at": {
+      "anyOf": [
+        {
+          "format": "date-time",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Updated At"
+    },
+    "history": {
+      "items": {
+        "$ref": "#/$defs/HistoryEvent"
+      },
+      "title": "History",
+      "type": "array"
+    },
+    "project": {
+      "minLength": 1,
+      "title": "Project",
+      "type": "string"
+    },
+    "title": {
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "purpose": {
+      "enum": [
+        "own_research",
+        "study"
+      ],
+      "title": "Purpose",
+      "type": "string"
+    },
+    "source_key": {
+      "minLength": 1,
+      "title": "Source Key",
+      "type": "string"
+    },
+    "legacy_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Legacy Ids",
+      "type": "array"
+    },
+    "category": {
+      "title": "Category",
+      "type": "string"
+    },
+    "cwe": {
+      "items": {
+        "pattern": "^CWE-[0-9]+$",
+        "type": "string"
+      },
+      "title": "Cwe",
+      "type": "array"
+    },
+    "ratings": {
+      "items": {
+        "$ref": "#/$defs/RecordedRating"
+      },
+      "title": "Ratings",
+      "type": "array"
+    },
+    "assigned_identifiers": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Assigned Identifiers",
+      "type": "array"
+    },
+    "reference_cases": {
+      "items": {
+        "$ref": "#/$defs/CaseReference"
+      },
+      "title": "Reference Cases",
+      "type": "array"
+    },
+    "materials": {
+      "items": {
+        "$ref": "#/$defs/CaseMaterial"
+      },
+      "minItems": 1,
+      "title": "Materials",
+      "type": "array"
+    },
+    "evidence": {
+      "items": {
+        "$ref": "#/$defs/Evidence"
+      },
+      "minItems": 1,
+      "title": "Evidence",
+      "type": "array"
+    },
+    "submission_status": {
+      "$ref": "#/$defs/SubmissionStatus",
+      "default": "unknown"
+    },
+    "submission_basis": {
+      "default": "unknown",
+      "enum": [
+        "unknown",
+        "user_instruction",
+        "platform_receipt"
+      ],
+      "title": "Submission Basis",
+      "type": "string"
+    },
+    "submission_note": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Submission Note"
+    },
+    "processing_status": {
+      "$ref": "#/$defs/ProcessingStatus",
+      "default": "unknown"
+    },
+    "planned_channel": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Planned Channel"
+    },
+    "planned_submission_date_raw": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Planned Submission Date Raw"
+    },
+    "external_report_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "External Report Id"
+    },
+    "reported_versions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Reported Versions",
+      "type": "array"
+    },
+    "summary": {
+      "title": "Summary",
+      "type": "string"
+    },
+    "learning_notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Learning Notes",
+      "type": "array"
+    },
+    "missing_information": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Missing Information",
+      "type": "array"
+    },
+    "verification_basis": {
+      "const": "existing_report_only",
+      "default": "existing_report_only",
+      "title": "Verification Basis",
+      "type": "string"
+    },
+    "kind": {
+      "const": "va_case",
+      "default": "va_case",
+      "title": "Kind",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "intake_sha256": {
+      "pattern": "^[a-f0-9]{64}$",
+      "title": "Intake Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "id",
+    "created_at",
+    "project",
+    "title",
+    "purpose",
+    "source_key",
+    "category",
+    "materials",
+    "evidence",
+    "summary",
+    "intake_sha256"
+  ],
+  "title": "VACase",
+  "type": "object"
+}

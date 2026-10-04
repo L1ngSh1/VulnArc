@@ -4,7 +4,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
-from .models import Experiment, Finding, Hypothesis, PublicCase, Status
+from .models import Experiment, Finding, Hypothesis, PublicCase, Report, Status
 from .storage import metadata_files, parse_record
 
 
@@ -20,7 +20,16 @@ def calculate(workspace: Path) -> dict[str, Any]:
     identifiers = sum(
         int(bool(r.cve)) + int(bool(r.ghsa)) for r in records if isinstance(r, PublicCase)
     )
+    verified = {"validated", "reported", "embargoed", "disclosed", "public"}
     result: dict[str, Any] = {
+        "reports": counts["Report"],
+        "report_statuses": dict(
+            Counter(r.processing_status.value for r in records if isinstance(r, Report))
+        ),
+        "report_submissions": dict(
+            Counter(r.submission_status.value for r in records if isinstance(r, Report))
+        ),
+        "validated_and_later": sum(statuses[s] for s in verified),
         "targets": counts["Target"],
         "hypotheses": counts["Hypothesis"] + counts["Finding"],
         "candidates": statuses[Status.CANDIDATE.value],
@@ -32,10 +41,11 @@ def calculate(workspace: Path) -> dict[str, Any]:
     }
     rates = {}
     for origin, values in decisions.items():
-        decided = values["validated"] + values["rejected"]
+        validated = sum(values[s] for s in verified)
+        decided = validated + values["rejected"]
         if decided:
             rates[origin] = {
-                "validation_rate": values["validated"] / decided,
+                "validation_rate": validated / decided,
                 "rejection_rate": values["rejected"] / decided,
             }
     if rates:
