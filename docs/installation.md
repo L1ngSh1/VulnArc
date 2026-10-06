@@ -27,8 +27,8 @@ an independent `.venv` and `pip install -e '.[dev]'`; that is not the release in
   from `VULNARC_WORKSPACE`.
 - The compatibility `va` shortcut preserves the old order: explicit workspace >
   `VULNARC_WORKSPACE` > `$HOME/Workspace/Projects/My-github-projects/VulnArc-Research`.
-- Only `va register/show/list/check` inject a default. Both long and short workspace options
-  are accepted. Migration does not change the selected data directory.
+- Only `va register/show/list/check/read/materials` inject a default. Both long and short
+  workspace options are accepted. Migration does not change the selected data directory.
 - The historical launcher now forwards to the installed `va` in this repository's
   `.venv-release/bin`. `VULNARC_VA_BIN` may select another installed `va` executable.
   `VULNARC_PYTHON` and old source PYTHONPATH are no longer used by that forwarder.

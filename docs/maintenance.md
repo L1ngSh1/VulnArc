@@ -32,9 +32,20 @@ VA 案例数由 `vulnarc va list` 给出，RPT 报告数由 `report list` / `sta
 研究记录使用原 `list` / `stats` 入口；全库清单包括不同 kind，不能当作一个去重漏洞数。
 VA and RPT counts are distinct; neither changes research validation/rejection denominators.
 
-正文阅读、笔记编辑命令、VA update、统一实时时间线、交互登记、检索与网页仍是计划项。
-Body reading, note editing commands, VA update, a unified live timeline, interactive intake,
-search and a web UI are not implemented. No schema upgrade, conversion or ID reuse is introduced.
+`va read` 已支持主报告/登记翻译正文；`va materials` 给出完整的逐项原件校验清单。
+`va show` 是元数据概览，标记材料未校验并提供实际工作区命令，不复用登记回执的核对结论。
+阅读只检查所选报告，校验与显示共享同次读取的字节；材料缺失/变化时仍可使用正常部分。
+这些命令不写快照、不创建副本、不新增 history；`register/check` 继续使用原严格校验。
+`va read` 在终端按窗口宽度排版并增加段落/章节留白；指定窄宽度时居中。
+管道或 `--raw` 保持完整原文；`--pretty` 可强制版面，不向原件写入空行。
+信息与来源走 stderr，正文走 stdout；切换已登记翻译仍使用 `--report translation`，不自动翻译。
+`va read` reads registered primary/translation reports; `va materials` checks each original.
+`show` is an unverified metadata overview, not a registration receipt or integrity verdict.
+These read-only views do not rewrite registration snapshots or handwritten notes.
+
+笔记编辑命令、VA update、统一实时时间线、交互登记、检索与网页仍是计划项。
+Note editing commands, VA update, a unified live timeline, interactive intake, search and a
+web UI are not implemented. No schema upgrade, conversion or ID reuse is introduced.
 
 相关入口：[安装](installation.md) · [VA 中文](docs-zh/va-quickstart.md) ·
 [VA English](va-quickstart.md) · [旧 RPT](docs-zh/report-quickstart.md)。

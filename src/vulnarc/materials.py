@@ -14,6 +14,34 @@ def resolve_material(path: str, workspace: Path | None = None) -> Path:
     return material
 
 
+def read_material(
+    path: str | None,
+    sha256: str | None,
+    line: int | None = None,
+    *,
+    workspace: Path | None = None,
+    absolute_required: bool = False,
+    hash_required: bool = False,
+    read_content: bool = True,
+) -> tuple[Literal["required", "missing", "hash", "line"] | None, bytes | None]:
+    """Return checked bytes from one read, retaining the existing check order.
+
+    Legacy existence-only checks need not read a file without a hash or line.
+    I/O and decoding errors remain exceptions for existing callers to handle.
+    """
+    if not path or (hash_required and not sha256):
+        return "required", None
+    material = resolve_material(path, workspace)
+    if (absolute_required and not Path(path).is_absolute()) or not material.is_file():
+        return "missing", None
+    content = material.read_bytes() if read_content or sha256 or line else None
+    if sha256 and hashlib.sha256(content).hexdigest() != sha256:
+        return "hash", None
+    if line and line > len(content.decode("utf-8").splitlines()):
+        return "line", None
+    return None, content
+
+
 def material_problem(
     path: str | None,
     sha256: str | None,
@@ -23,17 +51,12 @@ def material_problem(
     absolute_required: bool = False,
     hash_required: bool = False,
 ) -> Literal["required", "missing", "hash", "line"] | None:
-    """Check in the original order: required fields, path, hash, then line bounds."""
-    if not path or (hash_required and not sha256):
-        return "required"
-    material = resolve_material(path, workspace)
-    if (absolute_required and not Path(path).is_absolute()) or not material.is_file():
-        return "missing"
-    if sha256 and hashlib.sha256(material.read_bytes()).hexdigest() != sha256:
-        return "hash"
-    if line and line > len(material.read_text(encoding="utf-8").splitlines()):
-        return "line"
-    return None
+    """Compatibility check; shared byte reading does not change VA/RPT strictness."""
+    problem, _ = read_material(
+        path, sha256, line, workspace=workspace, absolute_required=absolute_required,
+        hash_required=hash_required, read_content=False,
+    )
+    return problem
 
 
 def verify_case_materials(record: CaseDetails) -> None:
