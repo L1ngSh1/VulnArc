@@ -2,8 +2,10 @@
 
 import sys
 
+from rich.align import Align
 from rich.console import Console, Group
-from rich.markdown import Markdown, TableElement
+from rich.markdown import Heading, Markdown, Paragraph, TableElement
+from rich.padding import Padding
 from rich.panel import Panel
 from rich.text import Text
 
@@ -22,8 +24,35 @@ class WrappingTable(TableElement):
             yield table
 
 
+class SpacedParagraph(Paragraph):
+    @classmethod
+    def create(cls, markdown, token):
+        paragraph = super().create(markdown, token)
+        # Tight list items stay tight; paragraphs get one extra blank row.
+        paragraph.space_after = 0 if token.hidden else 1
+        return paragraph
+
+    def __rich_console__(self, console, options):
+        yield Padding(
+            Group(*super().__rich_console__(console, options)), (0, 0, self.space_after, 0)
+        )
+
+
+class SpacedHeading(Heading):
+    def __rich_console__(self, console, options):
+        yield Padding(
+            Group(*super().__rich_console__(console, options)),
+            (0 if self.tag == "h1" else 1, 0, 0, 0),
+        )
+
+
 class ReportMarkdown(Markdown):
-    elements = {**Markdown.elements, "table_open": WrappingTable}
+    elements = {
+        **Markdown.elements,
+        "table_open": WrappingTable,
+        "paragraph_open": SpacedParagraph,
+        "heading_open": SpacedHeading,
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -54,6 +83,7 @@ def reading_header(
     lines = [
         Text(f"{record.id}  ·  {selected}  ·  SHA-256 已核对", style="bold green"),
         Text(visible_text(record.title), style="bold"),
+        Text(""),
         Text(f"材料：{visible_text(ref.label)}", style="dim"),
         Text(f"原件：{visible_text(ref.path)}", style="dim"),
         Text(""),
@@ -91,24 +121,32 @@ def render_report(
         markup=False,
         emoji=False,
     )
-    page_width = min(width or 100, console.width)
+    # Default fills the current terminal, leaving two cells on each side.
+    # Explicit narrower pages are centered instead of stranded on the left.
+    available_width = max(1, console.width - (4 if console.width >= 40 else 0))
+    page_width = min(width or available_width, available_width)
     metadata_console.print(
-        Panel(
-            reading_header(record, ref, report),
-            title=Text("V U L N A R C  /  报告阅读", style="bold cyan"),
-            title_align="left",
-            border_style="cyan",
-            width=page_width,
-            padding=(1, 2),
+        Align.center(
+            Panel(
+                reading_header(record, ref, report),
+                title=Text("V U L N A R C  /  报告阅读", style="bold cyan"),
+                title_align="left",
+                border_style="cyan",
+                width=page_width,
+                padding=(1, 2),
+            )
         )
     )
+    console.print()
     console.print(
-        Panel(
-            ReportMarkdown(text, hyperlinks=False, justify="left"),
-            title=Text("正文 · Markdown", style="bold"),
-            title_align="left",
-            border_style="bright_black",
-            width=page_width,
-            padding=(1, 2),
+        Align.center(
+            Panel(
+                ReportMarkdown(text, hyperlinks=False, justify="left"),
+                title=Text("正文 · Markdown", style="bold"),
+                title_align="left",
+                border_style="bright_black",
+                width=page_width,
+                padding=(1, 2),
+            )
         )
     )

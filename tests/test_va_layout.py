@@ -114,12 +114,18 @@ def test_layout_parameter_errors(case, options):
 
 @pytest.mark.parametrize(
     "terminal_width,width,expected",
-    [(240, None, 100), (80, None, 80), (120, 60, 60), (50, 100, 50), (40, None, 40)],
+    [(240, None, 236), (80, None, 76), (120, 60, 60), (50, 100, 46), (40, None, 36)],
 )
 def test_reading_width_is_bounded_and_folds_long_code(case, terminal_width, width, expected):
     text = "# 标题\n\n```text\n" + "x" * 220 + "CODE-END\n```\n\nBODY-END"
     out, err = render(case, text, terminal_width=terminal_width, width=width)
-    assert all(cell_len(line) <= expected for line in (out + err).splitlines())
+    assert all(cell_len(line) <= terminal_width for line in (out + err).splitlines())
+    tops = [line for line in (out + err).splitlines() if "╭" in line and "╮" in line]
+    assert len(tops) == 2
+    for line in tops:
+        first, last = line.index("╭"), line.rindex("╮")
+        assert cell_len(line[first : last + 1]) == expected
+        assert cell_len(line[:first]) == (terminal_width - expected) // 2
     flattened = out.replace("│", "").replace(" ", "").replace("\n", "")
     assert "CODE-END" in flattened and "BODY-END" in flattened
     assert "x" * 220 in flattened  # No long code content was cropped.
@@ -192,3 +198,51 @@ def test_pretty_uses_one_checked_read(case, monkeypatch):
     result = invoke(case, "read", "--pretty")
     assert result.exit_code == 0 and "主报告" in result.stdout and "echo inert" in result.stdout
     assert reads == [case[3]]
+
+
+@pytest.mark.parametrize("terminal_width", [40, 80, 120, 160, 240])
+def test_default_uses_current_screen_size(case, terminal_width):
+    out, _ = render(case, "# 标题\n\n中文正文", terminal_width=terminal_width)
+    top = next(line for line in out.splitlines() if "╭" in line)
+    first, last = top.index("╭"), top.rindex("╮")
+    assert cell_len(top[first : last + 1]) == terminal_width - 4
+    assert cell_len(top[:first]) == 2
+
+
+def body_rows(value):
+    return [
+        line.split("│", 1)[1].rsplit("│", 1)[0].strip()
+        for line in value.splitlines()
+        if "│" in line
+    ]
+
+
+def test_paragraph_and_section_breathing_space(case):
+    text = "PARAGRAPH-A\n\nPARAGRAPH-B\n\n## SECTION-C\n\nSECTION-TEXT"
+    out, _ = render(case, text, terminal_width=100)
+    rows = body_rows(out)
+    a, b, heading, following = [
+        rows.index(marker) for marker in ["PARAGRAPH-A", "PARAGRAPH-B", "SECTION-C", "SECTION-TEXT"]
+    ]
+    assert all(not row for row in rows[a + 1 : b]) and b - a >= 3
+    assert all(not row for row in rows[b + 1 : heading]) and heading - b >= 3
+    assert all(not row for row in rows[heading + 1 : following]) and following - heading >= 2
+
+
+def test_code_table_and_tight_list_do_not_get_internal_blank_rows(case):
+    text = (
+        "```text\nCODE-LINE-1\nCODE-LINE-2\n```\n\n"
+        + "| 列 | 值 |\n|---|---|\n| ROW-A | a |\n| ROW-B | b |\n\n"
+        + "- ITEM-A\n- ITEM-B\n"
+    )
+    out, _ = render(case, text, terminal_width=100)
+    rows = body_rows(out)
+    for first, second in [("CODE-LINE-1", "CODE-LINE-2"), ("ROW-A", "ROW-B"), ("ITEM-A", "ITEM-B")]:
+        a = next(i for i, row in enumerate(rows) if first in row)
+        b = next(i for i, row in enumerate(rows) if second in row)
+        assert b == a + 1
+
+
+def test_information_and_body_panels_are_separated(case):
+    out, _ = render(case, "TEXT")
+    assert out.startswith("\n")  # A blank row separates stderr info from stdout body in a TTY.

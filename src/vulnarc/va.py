@@ -293,7 +293,7 @@ def read_report(
     pretty: Annotated[bool, typer.Option("--pretty", help="强制 Markdown 边框排版")] = False,
     raw: Annotated[bool, typer.Option("--raw", help="只输出原始正文，不排版")] = False,
     width: Annotated[int | None, typer.Option(
-        "--width", min=40, max=200, help="阅读版面宽度；默认最多 100 列，适配终端",
+        "--width", min=40, max=200, help="指定阅读宽度；默认跟随终端宽度并居中",
     )] = None,
 ):
     """终端内排版 Markdown，重定向时输出原文；只核对所选报告。"""
