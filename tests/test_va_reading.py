@@ -8,6 +8,7 @@ from pathlib import Path
 
 import pytest
 import test_va
+from rich.text import Text
 from typer.testing import CliRunner
 
 from vulnarc.cli import app
@@ -189,10 +190,18 @@ def test_case_input_errors(case, command, problem):
 
 
 @pytest.mark.parametrize("command", ["show", "read", "materials"])
-def test_formal_entry_requires_explicit_workspace(command, tmp_path):
+@pytest.mark.parametrize("force_color", [False, True])
+def test_formal_entry_requires_explicit_workspace(command, tmp_path, monkeypatch, force_color):
+    monkeypatch.setenv("TERM", "xterm-256color" if force_color else "dumb")
+    if force_color:
+        monkeypatch.setenv("FORCE_COLOR", "1")
+    else:
+        monkeypatch.delenv("FORCE_COLOR", raising=False)
     before = snapshot(tmp_path)
     result = runner.invoke(app, ["va", command, "VA-2026-0001"])
-    assert result.exit_code == 2 and "--workspace" in result.output
+    assert result.exit_code == 2 and "--workspace" in Text.from_ansi(result.output).plain
+    if force_color:
+        assert "\x1b[" in result.output  # Exercise Rich's styled option fragments.
     assert snapshot(tmp_path) == before
 
 
