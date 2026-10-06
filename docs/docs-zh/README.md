@@ -15,24 +15,28 @@ vulnarc va register /absolute/path/to/reviewed-intake.json --workspace /absolute
 vulnarc va register /absolute/path/to/reviewed-intake.json --workspace /absolute/path/to/VulnArc-Research --apply
 vulnarc va list --workspace /absolute/path/to/VulnArc-Research
 vulnarc va show VA-2026-0001 --workspace /absolute/path/to/VulnArc-Research
+vulnarc va read VA-2026-0001 --workspace /absolute/path/to/VulnArc-Research
+vulnarc va materials VA-2026-0001 --workspace /absolute/path/to/VulnArc-Research
 vulnarc va check --workspace /absolute/path/to/VulnArc-Research
 ```
 
 先预览，再 `--apply`。VA 是本地案例编号，不代表 CVE 分配或厂商接受。
-重复登记同一清单保留原编号和手写笔记；`show` 当前只显示编号卡与文档路径，不读取报告正文。
+重复登记同一清单保留原编号和手写笔记。`show` 给出未校验概览与可复制命令；
+`read` 阅读完整主报告（`--report translation` 选择已登记中文翻译）；`materials` 逐项核对原件。
+终端自动显示有边框的 Markdown 版面；管道或 `--raw` 仍保留原文。
 详情统一见[VA 快速指南](va-quickstart.md)与[材料和记录维护约定](../maintenance.md)。
 
 ## 当前已实现命令
 
 | 用途 | 命令 |
 | --- | --- |
-| 新 VA 案例归档 | `va register`、`va list`、`va show`、`va check` |
+| 新 VA 案例归档 | `va register`、`va list`、`va show`、`va read`、`va materials`、`va check` |
 | 已有 RPT 报告维护 | `report add`、`report list`、`report show`、`report update` |
 | 专用旧登记清单导入 | `report import-inventory`，特定格式，默认预览 |
 | 全库校验、清单和恢复 | `validate`、`list`、`restore` |
 | 进阶研究与实验 | `new hypothesis`、`new experiment`、`new case`、`status`、`stats`、`compare` |
 
-**计划项，尚未实现**：正文阅读入口、笔记编辑命令、VA update、统一实时时间线、交互登记、检索、网页。
+**计划项，尚未实现**：笔记编辑命令、VA update、统一实时时间线、交互登记、检索、网页。
 VA/RPT 仍是独立模型；新案例使用 VA，不自动创建第二份 RPT，不迁移或重编号旧记录。
 
 ## 进阶研究
