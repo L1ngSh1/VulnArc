@@ -9,20 +9,33 @@ from typing import Annotated
 from zoneinfo import ZoneInfo
 
 import typer
+import yaml
 
 from .history import event, now
 from .materials import verify_case_materials as verify_materials
 from .models import CaseDetails, VACase
+from .reading import (
+    ReportKind,
+    SelectionError,
+    inspect_material,
+    load_case,
+    overview_lines,
+    report_text,
+    select_report,
+    visible_text,
+)
 from .storage import (
     create_record,
     digest,
-    find_record,
     load_yaml,
     metadata_files,
     validate_workspace,
 )
 
-va_app = typer.Typer(help="VA 案例档案：登记、查阅、总账。仅处理本地材料。", no_args_is_help=True)
+va_app = typer.Typer(
+    help="VA 案例档案：登记、概览、正文、材料、总账。仅处理本地材料。",
+    no_args_is_help=True,
+)
 Workspace = Annotated[Path, typer.Option("--workspace", "-w", help="私有案例工作区")]
 INTAKE_SCHEMA = "vulnarc-case-intake-v1"
 
@@ -258,15 +271,59 @@ def register(
 
 @va_app.command("show")
 def show(record_id: str, workspace: Workspace):
-    """显示案例编号卡片，不改动档案。"""
+    """显示未核对原件的案例概览与阅读入口，不改动档案。"""
     try:
-        path, data = find_record(workspace, record_id)
-        record = VACase.model_validate(data)
-        verify_materials(record)
-        receipt(record, path.parent)
-    except (ValueError, OSError) as exc:
-        typer.echo(f"查阅未完成：{exc}", err=True)
+        path, record = load_case(workspace, record_id)
+        for line in overview_lines(record, path, workspace):
+            typer.echo(line)
+    except (ValueError, OSError, yaml.YAMLError) as exc:
+        typer.echo(f"查阅未完成：{visible_text(str(exc))}", err=True)
         raise typer.Exit(1) from exc
+
+
+@va_app.command("read")
+def read_report(
+    record_id: str,
+    workspace: Workspace,
+    report: Annotated[ReportKind, typer.Option("--report", help="主报告或已登记翻译")]
+    = ReportKind.PRIMARY,
+    material: Annotated[int | None, typer.Option("--material", min=1, help="材料清单当前序号")]
+    = None,
+):
+    """输出完整 UTF-8 原报告；出处走 stderr，只核对所选材料。"""
+    try:
+        _, record = load_case(workspace, record_id)
+        ref = select_report(record, report, material)
+        text = report_text(ref)
+    except SelectionError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(2) from exc
+    except (ValueError, OSError, yaml.YAMLError) as exc:
+        typer.echo(f"阅读未完成：{visible_text(str(exc))}", err=True)
+        raise typer.Exit(1) from exc
+    typer.echo(f"{record.id} · {visible_text(ref.role)} · SHA-256 已核对", err=True)
+    typer.echo(f"原件：{visible_text(ref.path)}", err=True)
+    typer.echo(text, nl=False)
+
+
+@va_app.command("materials")
+def list_materials(record_id: str, workspace: Workspace):
+    """完整列出材料、原件路径与逐项校验状态；单项错误不阻断清单。"""
+    try:
+        _, record = load_case(workspace, record_id)
+    except (ValueError, OSError, yaml.YAMLError) as exc:
+        typer.echo(f"材料查询未完成：{visible_text(str(exc))}", err=True)
+        raise typer.Exit(1) from exc
+    typer.echo(f"{record.id} · 材料 {len(record.materials)} 份（当前序号，从 1 开始）")
+    failed = False
+    for number, ref in enumerate(record.materials, 1):
+        _, error = inspect_material(ref)
+        failed |= error is not None
+        typer.echo(f"{number}. {visible_text(ref.role)} · {visible_text(ref.label)}")
+        typer.echo(f"   原件：{visible_text(ref.path)}")
+        typer.echo(f"   校验：{error or 'SHA-256 已核对'}")
+    if failed:
+        raise typer.Exit(1)
 
 
 @va_app.command("list")
