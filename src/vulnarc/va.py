@@ -11,6 +11,7 @@ from zoneinfo import ZoneInfo
 import typer
 import yaml
 
+from .display import pretty_enabled, render_report
 from .history import event, now
 from .materials import verify_case_materials as verify_materials
 from .models import CaseDetails, VACase
@@ -289,8 +290,16 @@ def read_report(
     = ReportKind.PRIMARY,
     material: Annotated[int | None, typer.Option("--material", min=1, help="材料清单当前序号")]
     = None,
+    pretty: Annotated[bool, typer.Option("--pretty", help="强制 Markdown 边框排版")] = False,
+    raw: Annotated[bool, typer.Option("--raw", help="只输出原始正文，不排版")] = False,
+    width: Annotated[int | None, typer.Option(
+        "--width", min=40, max=200, help="阅读版面宽度；默认最多 100 列，适配终端",
+    )] = None,
 ):
-    """输出完整 UTF-8 原报告；出处走 stderr，只核对所选材料。"""
+    """终端内排版 Markdown，重定向时输出原文；只核对所选报告。"""
+    if pretty and raw:
+        typer.echo("选项冲突：--pretty 与 --raw 只能选择一个", err=True)
+        raise typer.Exit(2)
     try:
         _, record = load_case(workspace, record_id)
         ref = select_report(record, report, material)
@@ -301,9 +310,12 @@ def read_report(
     except (ValueError, OSError, yaml.YAMLError) as exc:
         typer.echo(f"阅读未完成：{visible_text(str(exc))}", err=True)
         raise typer.Exit(1) from exc
-    typer.echo(f"{record.id} · {visible_text(ref.role)} · SHA-256 已核对", err=True)
-    typer.echo(f"原件：{visible_text(ref.path)}", err=True)
-    typer.echo(text, nl=False)
+    if pretty_enabled(pretty=pretty, raw=raw):
+        render_report(record, ref, report, text, width=width)
+    else:
+        typer.echo(f"{record.id} · {visible_text(ref.role)} · SHA-256 已核对", err=True)
+        typer.echo(f"原件：{visible_text(ref.path)}", err=True)
+        typer.echo(text, nl=False)
 
 
 @va_app.command("materials")
