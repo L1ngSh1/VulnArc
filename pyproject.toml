@@ -12,7 +12,7 @@ license = {text = "Apache-2.0"}
 dependencies = ["typer>=0.12,<1", "pydantic>=2.8,<3", "PyYAML>=6,<7", "rich>=13.8,<16"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8,<9", "ruff>=0.6"]
+dev = ["pytest>=9.0.3,<10", "ruff>=0.6"]
 
 [project.scripts]
 vulnarc = "vulnarc.cli:app"

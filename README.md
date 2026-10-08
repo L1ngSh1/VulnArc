@@ -173,6 +173,8 @@ Search, interactive intake and VA update commands remain future work.
 - [Architecture](docs/architecture.md) · [Workspace model](docs/workspace-model.md)
 - [Contributing](CONTRIBUTING.md) · [Disclosure](DISCLOSURE.md)
 
+- [CI and dependency checks](docs/ci.md)
+
 ## 📄 License
 
 VulnArc is licensed under [Apache-2.0](LICENSE).

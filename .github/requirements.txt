@@ -1,0 +1,3 @@
+# CI tooling only; not application dependencies. Updated by Dependabot.
+pip-audit==2.10.1
+uv==0.12.23
