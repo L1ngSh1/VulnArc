@@ -170,6 +170,8 @@ VulnArc/
 - [架构说明](architecture.md) · [工作区模型](workspace-model.md)
 - [参与贡献](../../CONTRIBUTING.md) · [披露约定](../../DISCLOSURE.md)
 
+- [CI 与依赖检查说明](../ci.md)
+
 ## 📄 许可证
 
 本项目采用 [Apache-2.0](../../LICENSE) 许可证。
